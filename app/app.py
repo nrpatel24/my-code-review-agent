@@ -1,57 +1,45 @@
-from agent_graph.graph import create_graph, compile_workflow
+# app/app.py
 
-# server = 'ollama'
-# model = 'llama3:instruct'
-# model_endpoint = None
+import argparse
+from agents.code_reviewer import code_review_agent
 
-server = 'openai'
-model = 'gpt-3.5-turbo-1106'
-model_endpoint = None
+def main():
+    parser = argparse.ArgumentParser(description="Run the code‐review agent")
+    parser.add_argument(
+        "--code-file",
+        required=True,
+        help="Path to the Python file to review"
+    )
+    parser.add_argument(
+        "--model",
+        default="gpt-3.5-turbo-1106",
+        help="LLM model (default: gpt-3.5-turbo-1106)"
+    )
+    parser.add_argument(
+        "--server",
+        default="openai",
+        help="LLM server (default: openai)"
+    )
+    parser.add_argument(
+        "--model-endpoint",
+        default=None,
+        help="Optional custom endpoint"
+    )
+    args = parser.parse_args()
 
-# server = 'vllm'
-# model = 'meta-llama/Meta-Llama-3-70B-Instruct' # full HF path
-# runpod_endpoint = 'https://t3o6jzhg3zqci3-8000.proxy.runpod.net/' 
-# model_endpoint = runpod_endpoint + 'v1/chat/completions'
-# stop = "<|end_of_text|>"
+    # call the reviewer directly
+    state = {}
+    state = code_review_agent(
+        state,
+        file_path=args.code_file,
+        model=args.model,
+        server=args.server,
+        stop=None,
+        model_endpoint=args.model_endpoint
+    )
 
-iterations = 40
-
-print ("Creating graph and compiling workflow...")
-graph = create_graph(server=server, model=model, model_endpoint=model_endpoint, profile_file="profile2.json")
-workflow = compile_workflow(graph)
-print ("Graph and workflow created.")
-
+    # print ONLY the JSON feedback
+    print(state.get("review_comments", ""))
 
 if __name__ == "__main__":
-    verbose = False
-
-    while True:
-        # query = input("Please enter your research question: ")
-        # query = input("Are You Ready: ")
-        query = "go"
-
-
-        # if query.lower() == "exit":
-        #     break
-
-        dict_inputs = {"research_question": query}
-        thread = {"configurable": {"thread_id": "4"}}
-        limit = {"recursion_limit": iterations}
-
-        # for event in workflow.stream(
-        #     dict_inputs, thread, limit, stream_mode="values"
-        #     ):
-        #     if verbose:
-        #         print("\nState Dictionary:", event)
-        #     else:
-        #         print("\n")
-
-        for event in workflow.stream(
-            dict_inputs, limit
-            ):
-            if verbose:
-                print("\nState Dictionary:", event)
-            else:
-                print("\n")
-
-    
+    main()
