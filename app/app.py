@@ -1,10 +1,10 @@
 # app/app.py
 
 import argparse
-from agents.code_reviewer import code_review_agent
+from agents.pipeline import pipeline_agent
 
 def main():
-    parser = argparse.ArgumentParser(description="Run the code‐review agent")
+    parser = argparse.ArgumentParser(description="Chunked code‐review pipeline (direct)")
     parser.add_argument(
         "--code-file",
         required=True,
@@ -27,19 +27,23 @@ def main():
     )
     args = parser.parse_args()
 
-    # call the reviewer directly
-    state = {}
-    state = code_review_agent(
+    # Build up the initial state
+    state = {"code_file": args.code_file}
+
+    # Run your entire pipeline in one shot
+    final_state = pipeline_agent(
         state,
-        file_path=args.code_file,
         model=args.model,
         server=args.server,
         stop=None,
         model_endpoint=args.model_endpoint
     )
 
-    # print ONLY the JSON feedback
-    print(state.get("review_comments", ""))
+    # DEBUG: uncomment to see all keys in the final state
+    # print("FINAL STATE:", final_state)
+
+    # Print exactly the merged JSON (no blank lines)
+    print(final_state.get("review_comments", ""))
 
 if __name__ == "__main__":
     main()

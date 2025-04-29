@@ -1,16 +1,20 @@
 # prompts/prompts.py
 
-code_review_prompt_template = """You are a senior software engineer. Review the following Python code and provide:
+code_review_prompt_template = """You are a senior software engineer. Review the following Python code chunk and output **only** a JSON object with a single key "issues" whose value is a list of zero-or-more issue objects.
+Each issue object must have:
+- "line": integer line number
+- "issue": string describing the problem
+- "severity": one of "low", "medium", or "high"
 
-1. Top 3 issues: one-sentence summary each.
-2. Line-by-line comments in JSON:
-   [
-     {{ "line": 10, "issue": "...", "severity": "low|medium|high" }},
-     {{ "line": 20, "issue": "...", "severity": "low|medium|high" }},
-     {{ "line": 30, "issue": "...", "severity": "low|medium|high" }}
-   ]
-3. Overall score out of 5 and a one-sentence improvement suggestion.
+Do **not** include any prose or markdown—emit exactly:
 
-```python
+```json
+{{
+  "issues": [
+    {{ "line": 10, "issue": "...", "severity": "medium" }},
+    ...
+  ]
+}}
+Here is the code to review:
 {code}
 ```"""
